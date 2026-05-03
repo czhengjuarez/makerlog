@@ -409,6 +409,8 @@ a:hover { text-decoration: underline; }
 .ml-modal {
   width: 100%;
   max-width: 480px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
   background: var(--of-bg-elevated);
   border: 1px solid var(--of-border-line);
   border-radius: var(--of-radius-xl);

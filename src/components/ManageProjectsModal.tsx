@@ -13,7 +13,7 @@ interface Props {
 
 type Mode = 'auto' | 'custom';
 
-const STALE_DAYS = 30;
+const STALE_DAYS = 90;
 
 export function ManageProjectsModal({ open, onClose }: Props) {
   const { state, setPreferences } = useStore();
@@ -228,7 +228,7 @@ export function ManageProjectsModal({ open, onClose }: Props) {
               className="of-btn of-btn--ghost of-btn--sm"
               onClick={() => activeIn(STALE_DAYS)}
             >
-              Active 30d
+              Active 90d
             </button>
             <span className="ml-pref-count">{selected.size} selected</span>
           </div>
