@@ -10,6 +10,10 @@ import {
 } from 'react';
 import { dataSource } from './source';
 import { generateMockState } from './mock';
+import {
+  fetchGitHubSnapshot,
+  snapshotToProjectsAndCommits,
+} from '../lib/github';
 import type {
   Commit,
   Connection,
@@ -126,6 +130,9 @@ interface StoreCtx {
   exportJSON: () => string;
   importJSON: (raw: string) => boolean;
   ready: boolean;
+  seeding: boolean;
+  viewingDemo: boolean;
+  toggleDemo: () => void;
 }
 
 const Ctx = createContext<StoreCtx | null>(null);
@@ -138,20 +145,68 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   // forceUpdate proxy via reducer-style local state
   const [, force] = useReducer((x) => x + 1, 0);
   const readyRef = useRef(false);
+  const seedingRef = useRef(false);
+  const viewingDemoRef = useRef(false);
+  const demoState = useMemo(() => generateMockState(), []);
 
-  // Boot: load from datasource or seed with mock.
+  // Boot: load from datasource, or show mock then try to hydrate from Worker proxy.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const loaded = await dataSource.load();
       if (cancelled) return;
-      const next = loaded ?? generateMockState();
-      dispatch({ type: 'init', state: next });
-      if (!loaded) {
-        await dataSource.save(next);
+
+      if (loaded) {
+        dispatch({ type: 'init', state: loaded });
+        readyRef.current = true;
+        force();
+        return;
       }
+
+      // No saved data — show mock immediately so the UI isn’t blank.
+      const mock = generateMockState();
+      dispatch({ type: 'init', state: mock });
       readyRef.current = true;
+      seedingRef.current = true;
       force();
+
+      // Try to hydrate from the Cloudflare Worker proxy (only works when deployed).
+      // The Worker holds GITHUB_TOKEN as a secret; the browser sends no credentials.
+      try {
+        const snap = await fetchGitHubSnapshot({
+          token: '',
+          apiBase: '/api/gh',
+          windowDays: 365,
+          onlyMine: false,
+        });
+        if (cancelled) return;
+        const { projects, commits } = snapshotToProjectsAndCommits(snap);
+        const connection: Connection = {
+          id: `conn-gh-${snap.user.id}-auto`,
+          provider: 'github',
+          username: snap.user.login,
+          tokenHint: 'worker',
+          connectedAt: new Date().toISOString(),
+        };
+        const autoState: MakerLogState = {
+          projects,
+          commits,
+          ideas: [],
+          connections: [connection],
+          version: 1,
+          updatedAt: new Date().toISOString(),
+        };
+        dispatch({ type: 'replace-state', state: autoState });
+        await dataSource.save(autoState);
+      } catch {
+        // Proxy not available or GITHUB_TOKEN not set — keep mock data.
+        await dataSource.save(mock);
+      } finally {
+        if (!cancelled) {
+          seedingRef.current = false;
+          force();
+        }
+      }
     })();
     return () => {
       cancelled = true;
@@ -201,7 +256,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'reset-to-mock' });
   }, []);
 
+  const toggleDemo = useCallback(() => {
+    viewingDemoRef.current = !viewingDemoRef.current;
+    force();
+  }, []);
+
   const ingestSnapshot: StoreCtx['ingestSnapshot'] = useCallback((input) => {
+    viewingDemoRef.current = false;
     dispatch({
       type: 'ingest-snapshot',
       provider: input.provider,
@@ -231,9 +292,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const effectiveState = viewingDemoRef.current ? demoState : state;
+
   const value = useMemo<StoreCtx>(
     () => ({
-      state,
+      state: effectiveState,
       filters: filtersRef.current,
       setFilters,
       addIdea,
@@ -245,8 +308,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       exportJSON,
       importJSON,
       ready: readyRef.current,
+      seeding: seedingRef.current,
+      viewingDemo: viewingDemoRef.current,
+      toggleDemo,
     }),
-    [state, setFilters, addIdea, setIdeaStatus, removeIdea, resetToMock, ingestSnapshot, setPreferences, exportJSON, importJSON],
+    [effectiveState, setFilters, addIdea, setIdeaStatus, removeIdea, resetToMock, ingestSnapshot, setPreferences, exportJSON, importJSON, toggleDemo],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

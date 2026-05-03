@@ -1,15 +1,16 @@
-import { GitBranchPlus, RefreshCw, Sun, Moon, Upload } from 'lucide-react';
+import { GitBranchPlus, RefreshCw, X, Sun, Moon, Upload } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface HeaderProps {
   onConnect: () => void;
-  onReset: () => void;
+  onToggleDemo: () => void;
+  viewingDemo: boolean;
   onImport: () => void;
 }
 
 const THEME_KEY = 'makerlog:theme';
 
-export function Header({ onConnect, onReset, onImport }: HeaderProps) {
+export function Header({ onConnect, onToggleDemo, viewingDemo, onImport }: HeaderProps) {
   const [theme, setTheme] = useState<'auto' | 'light' | 'dark'>(() => {
     if (typeof window === 'undefined') return 'auto';
     return (localStorage.getItem(THEME_KEY) as 'auto' | 'light' | 'dark') ?? 'auto';
@@ -45,9 +46,14 @@ export function Header({ onConnect, onReset, onImport }: HeaderProps) {
         </div>
       </div>
       <div className="ml-header__actions">
-        <button className="of-btn of-btn--ghost of-btn--md" onClick={onReset} title="Reload demo data">
-          <RefreshCw size={16} strokeWidth={1.75} />
-          <span>Demo data</span>
+        <button
+          className={`of-btn of-btn--md ${viewingDemo ? 'of-btn--secondary' : 'of-btn--ghost'}`}
+          onClick={onToggleDemo}
+          title={viewingDemo ? 'Return to your real data' : 'Preview with sample data'}
+        >
+          {viewingDemo
+            ? <><X size={16} strokeWidth={1.75} /><span>Exit demo</span></>
+            : <><RefreshCw size={16} strokeWidth={1.75} /><span>Demo data</span></>}
         </button>
         <button className="of-btn of-btn--ghost of-btn--md" onClick={cycleTheme} aria-label={`Theme: ${theme}`}>
           {themeIcon}

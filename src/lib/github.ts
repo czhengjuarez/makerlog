@@ -76,8 +76,10 @@ async function gh<T>(
   path: string,
   params?: Record<string, string | number>,
   signal?: AbortSignal,
+  apiBase = API_BASE,
 ): Promise<GHResponse<T>> {
-  const url = new URL(path.startsWith('http') ? path : `${API_BASE}${path}`);
+  const raw = path.startsWith('http') ? path : `${apiBase}${path}`;
+  const url = raw.startsWith('http') ? new URL(raw) : new URL(raw, location.origin);
   if (params) {
     for (const [k, v] of Object.entries(params)) {
       url.searchParams.set(k, String(v));
@@ -85,14 +87,12 @@ async function gh<T>(
   }
   let res: Response;
   try {
-    res = await fetch(url.toString(), {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/vnd.github+json',
-        'X-GitHub-Api-Version': '2022-11-28',
-      },
-      signal,
-    });
+    const headers: Record<string, string> = {
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+    };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    res = await fetch(url.toString(), { headers, signal });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     throw new GitHubError(`Couldn't reach api.github.com. Check your network. (${msg})`, 0);
@@ -140,10 +140,11 @@ async function paginate<T>(
   params: Record<string, string | number>,
   maxPages: number,
   signal?: AbortSignal,
+  apiBase = API_BASE,
 ): Promise<T[]> {
   const out: T[] = [];
   for (let page = 1; page <= maxPages; page++) {
-    const { data, link } = await gh<T[]>(token, path, { ...params, per_page: 100, page }, signal);
+    const { data, link } = await gh<T[]>(token, path, { ...params, per_page: 100, page }, signal, apiBase);
     if (!Array.isArray(data)) break;
     out.push(...data);
     if (data.length < 100) break;
@@ -152,8 +153,8 @@ async function paginate<T>(
   return out;
 }
 
-export async function getCurrentUser(token: string, signal?: AbortSignal) {
-  const { data } = await gh<GitHubUser>(token, '/user', undefined, signal);
+export async function getCurrentUser(token: string, signal?: AbortSignal, apiBase = API_BASE) {
+  const { data } = await gh<GitHubUser>(token, '/user', undefined, signal, apiBase);
   return data;
 }
 
@@ -171,9 +172,9 @@ interface GitHubEmailEntry {
  * it, we soft-fail and return an empty array — caller falls back to login +
  * `user.email` matching only.
  */
-export async function listUserEmails(token: string, signal?: AbortSignal): Promise<string[]> {
+export async function listUserEmails(token: string, signal?: AbortSignal, apiBase = API_BASE): Promise<string[]> {
   try {
-    const { data } = await gh<GitHubEmailEntry[]>(token, '/user/emails', undefined, signal);
+    const { data } = await gh<GitHubEmailEntry[]>(token, '/user/emails', undefined, signal, apiBase);
     return data.filter((e) => e.verified).map((e) => e.email.toLowerCase());
   } catch {
     return [];
@@ -194,6 +195,7 @@ export async function listUserRepos(
     visibility?: 'all' | 'public' | 'private';
   } = {},
   signal?: AbortSignal,
+  apiBase = API_BASE,
 ) {
   return paginate<GitHubRepo>(
     token,
@@ -204,8 +206,9 @@ export async function listUserRepos(
       sort: 'pushed',
       direction: 'desc',
     },
-    10, // up to 1000 repos
+    10,
     signal,
+    apiBase,
   );
 }
 
@@ -225,6 +228,7 @@ export async function listRepoCommits(
   fullName: string, // "owner/repo"
   sinceISO: string,
   signal?: AbortSignal,
+  apiBase = API_BASE,
 ) {
   return paginate<GitHubCommit>(
     token,
@@ -232,6 +236,7 @@ export async function listRepoCommits(
     { since: sinceISO },
     10,
     signal,
+    apiBase,
   );
 }
 
@@ -270,6 +275,12 @@ export interface FetchOptions {
   onlyMine?: boolean;
   onProgress?: (p: FetchProgress) => void;
   signal?: AbortSignal;
+  /**
+   * Override the GitHub API base URL. Set to '/api/gh' to route requests
+   * through the Cloudflare Worker proxy (which injects the secret token).
+   * Leave unset to call api.github.com directly with `token`.
+   */
+  apiBase?: string;
 }
 
 export async function fetchGitHubSnapshot(opts: FetchOptions): Promise<GitHubSnapshot> {
@@ -278,20 +289,21 @@ export async function fetchGitHubSnapshot(opts: FetchOptions): Promise<GitHubSna
   const onP = opts.onProgress ?? (() => {});
   const concurrency = Math.max(1, Math.min(opts.concurrency ?? 4, 8));
   const onlyMine = opts.onlyMine ?? false;
+  const apiBase = opts.apiBase ?? API_BASE;
 
   onP({ phase: 'auth', message: 'Verifying token…' });
-  const user = await getCurrentUser(opts.token, opts.signal);
+  const user = await getCurrentUser(opts.token, opts.signal, apiBase);
 
   // Pull the user's verified emails so we can match commits authored under
   // emails that aren't linked to their GitHub account.
-  const emails = await listUserEmails(opts.token, opts.signal);
+  const emails = await listUserEmails(opts.token, opts.signal, apiBase);
   const identitySet = new Set<string>();
   if (user.email) identitySet.add(user.email.toLowerCase());
   for (const e of emails) identitySet.add(e);
   const userLogin = user.login.toLowerCase();
 
   onP({ phase: 'projects', message: `Listing repositories for @${user.login}…` });
-  const repos = await listUserRepos(opts.token, {}, opts.signal);
+  const repos = await listUserRepos(opts.token, {}, opts.signal, apiBase);
 
   // Sort repos into buckets up front so the progress UI is honest about
   // how many we'll actually probe.
@@ -352,7 +364,7 @@ export async function fetchGitHubSnapshot(opts: FetchOptions): Promise<GitHubSna
       let raw: GitHubCommit[] = [];
       let errored = false;
       try {
-        raw = await listRepoCommits(opts.token, r.full_name, since, opts.signal);
+        raw = await listRepoCommits(opts.token, r.full_name, since, opts.signal, apiBase);
       } catch (err) {
         if (err instanceof GitHubError && err.status === 401) throw err;
         // 409 = empty repo, 404 = inaccessible, 403 = SSO/scope. All non-fatal.

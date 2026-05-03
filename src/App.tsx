@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Download, Upload, Github, Sparkles, SlidersHorizontal } from 'lucide-react';
+import { Download, Upload, Github, Sparkles, SlidersHorizontal, Loader2, X } from 'lucide-react';
 import { StoreProvider, useStore } from './data/store';
 import { Header } from './components/Header';
 import { ViewSwitcher, type ViewMode } from './components/ViewSwitcher';
@@ -30,7 +30,7 @@ const VIEW_META: Record<ViewMode, { title: string; sub: string }> = {
 };
 
 function AppInner() {
-  const { resetToMock, exportJSON, importJSON, state } = useStore();
+  const { exportJSON, importJSON, state, seeding, viewingDemo, toggleDemo } = useStore();
   const [view, setView] = useState<ViewMode>('garden');
   const [filtered, setFiltered] = useState<ProjectType[]>([]);
   const [connectOpen, setConnectOpen] = useState(false);
@@ -83,12 +83,40 @@ function AppInner() {
     <div className="ml-shell">
       <Header
         onConnect={() => setConnectOpen(true)}
-        onReset={resetToMock}
+        onToggleDemo={toggleDemo}
+        viewingDemo={viewingDemo}
         onImport={handleImport}
       />
       <main className="ml-main">
         <div className="ml-stage">
-          {onDemoData && (
+          {seeding ? (
+            <div className="ml-banner" role="status">
+              <span className="ml-banner__icon" aria-hidden>
+                <Loader2 size={16} strokeWidth={1.75} style={{ animation: 'ml-spin 1s linear infinite' }} />
+              </span>
+              <div className="ml-banner__copy">
+                <strong>Loading your GitHub data…</strong>{' '}
+                Hang tight — this only happens on first visit. Future visits load instantly.
+              </div>
+            </div>
+          ) : viewingDemo ? (
+            <div className="ml-banner" role="status">
+              <span className="ml-banner__icon" aria-hidden>
+                <Sparkles size={16} strokeWidth={1.75} />
+              </span>
+              <div className="ml-banner__copy">
+                <strong>Previewing sample data.</strong>{' '}
+                This is synthetic data — your real commits are still saved.
+              </div>
+              <button
+                className="of-btn of-btn--secondary of-btn--sm"
+                onClick={toggleDemo}
+              >
+                <X size={14} strokeWidth={1.75} />
+                <span>Exit demo</span>
+              </button>
+            </div>
+          ) : onDemoData && (
             <div className="ml-banner" role="status">
               <span className="ml-banner__icon" aria-hidden>
                 <Sparkles size={16} strokeWidth={1.75} />
