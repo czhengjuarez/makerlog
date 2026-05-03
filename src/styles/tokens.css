@@ -1,0 +1,135 @@
+/*
+ * Keel design tokens
+ * Mirrored from @ops-forward/keel (~/OpsForward/Keel/tokens/tokens.css)
+ * to keep makerlog standalone-forkable. Update in sync if Keel tokens change.
+ */
+:root {
+  --of-magenta-50: #fff0f7;
+  --of-magenta-100: #ffd9ec;
+  --of-magenta-200: #FA96CE;
+  --of-magenta-300: #F53FA5;
+  --of-magenta-400: #D11A82;
+  --of-magenta-500: #A60E64;
+  --of-magenta-600: #80074D;
+  --of-magenta-700: #5C0538;
+  --of-magenta-800: #3B0224;
+  --of-magenta-900: #1F0113;
+  --of-gray-0: #ffffff;
+  --of-gray-25: #FBF9FB;
+  --of-gray-50: #F6F3F6;
+  --of-gray-100: #ECE7EC;
+  --of-gray-200: #DCD4DC;
+  --of-gray-300: #BDB2BD;
+  --of-gray-400: #958997;
+  --of-gray-500: #6E626F;
+  --of-gray-600: #504551;
+  --of-gray-700: #352D37;
+  --of-gray-800: #211B23;
+  --of-gray-900: #14101A;
+  --of-gray-950: #0B0810;
+  --of-success-500: #2FA775;
+  --of-success-100: #DCF3E7;
+  --of-warning-500: #D88A2B;
+  --of-warning-100: #FBEBD3;
+  --of-danger-500: #D93452;
+  --of-danger-100: #FBDDE3;
+  --of-info-500: #4A6CF7;
+  --of-info-100: #DCE2FD;
+
+  --of-bg-base: light-dark(var(--of-gray-25),  var(--of-gray-950));
+  --of-bg-elevated: light-dark(var(--of-gray-0),   var(--of-gray-900));
+  --of-bg-recessed: light-dark(var(--of-gray-50),  var(--of-gray-800));
+  --of-bg-sunken: light-dark(var(--of-gray-100), #0F0B15);
+  --of-bg-brand: var(--of-magenta-600);
+  --of-bg-brand-hover: var(--of-magenta-500);
+  --of-bg-brand-press: var(--of-magenta-700);
+  --of-bg-brand-tint: light-dark(var(--of-magenta-50),  #2A0519);
+  --of-bg-brand-subtle: light-dark(#FFE4F2, #3B0224);
+  --of-bg-success-tint: light-dark(var(--of-success-100), #0F3226);
+  --of-bg-warning-tint: light-dark(var(--of-warning-100), #3B2910);
+  --of-bg-danger-tint: light-dark(var(--of-danger-100),  #3B0F18);
+  --of-bg-info-tint: light-dark(var(--of-info-100),    #1A1F3D);
+
+  --of-fg-default: light-dark(var(--of-gray-900), var(--of-gray-50));
+  --of-fg-muted: light-dark(var(--of-gray-600), var(--of-gray-300));
+  --of-fg-subtle: light-dark(var(--of-gray-500), var(--of-gray-400));
+  --of-fg-disabled: light-dark(var(--of-gray-400), var(--of-gray-500));
+  --of-fg-on-brand: #ffffff;
+  --of-fg-brand: light-dark(var(--of-magenta-600), var(--of-magenta-300));
+  --of-fg-success: light-dark(#1F7A54, #5CCA94);
+  --of-fg-warning: light-dark(#A26417, #E7A85A);
+  --of-fg-danger: light-dark(#A42236, #EF6A81);
+  --of-fg-info: light-dark(#2F4BC4, #8AA0FF);
+
+  --of-border-line: light-dark(var(--of-gray-200), var(--of-gray-700));
+  --of-border-strong: light-dark(var(--of-gray-300), var(--of-gray-600));
+  --of-border-subtle: light-dark(var(--of-gray-100), var(--of-gray-800));
+  --of-border-brand: var(--of-magenta-400);
+  --of-ring: color-mix(in oklch, var(--of-magenta-400) 50%, transparent);
+
+  --of-gradient-brand: linear-gradient(135deg, #80074D 0%, #B01273 45%, #FB41AA 100%);
+  --of-gradient-brand-soft: linear-gradient(135deg, #FFD9EC 0%, #FA96CE 100%);
+
+  --of-font-display: 'Space Grotesk', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --of-font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --of-font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --of-text-xs: 0.75rem;
+  --of-text-sm: 0.8125rem;
+  --of-text-base: 0.9375rem;
+  --of-text-md: 1rem;
+  --of-text-lg: 1.125rem;
+  --of-text-xl: 1.375rem;
+  --of-text-2xl: 1.75rem;
+  --of-text-3xl: 2.25rem;
+  --of-text-4xl: 3rem;
+  --of-text-5xl: 4rem;
+
+  --of-leading-tight: 1.15;
+  --of-leading-snug: 1.3;
+  --of-leading-normal: 1.55;
+  --of-leading-relaxed: 1.7;
+  --of-tracking-tight: -0.02em;
+  --of-tracking-snug: -0.01em;
+  --of-tracking-wide: 0.04em;
+
+  --of-radius-xs: 4px;
+  --of-radius-sm: 6px;
+  --of-radius-md: 10px;
+  --of-radius-lg: 14px;
+  --of-radius-xl: 20px;
+  --of-radius-2xl: 28px;
+  --of-radius-pill: 999px;
+
+  --of-shadow-xs: 0 1px 2px rgba(30, 10, 20, 0.05);
+  --of-shadow-sm: 0 2px 4px rgba(30, 10, 20, 0.06), 0 1px 2px rgba(30, 10, 20, 0.04);
+  --of-shadow-md: 0 6px 16px rgba(30, 10, 20, 0.08), 0 2px 4px rgba(30, 10, 20, 0.05);
+  --of-shadow-lg: 0 18px 40px rgba(30, 10, 20, 0.12), 0 4px 8px rgba(30, 10, 20, 0.06);
+  --of-shadow-brand: 0 12px 32px rgba(128, 7, 77, 0.24);
+  --of-shadow-inset: inset 0 1px 0 rgba(255,255,255,0.08);
+
+  --of-space-1: 4px;
+  --of-space-2: 8px;
+  --of-space-3: 12px;
+  --of-space-4: 16px;
+  --of-space-5: 20px;
+  --of-space-6: 24px;
+  --of-space-8: 32px;
+  --of-space-10: 40px;
+  --of-space-12: 48px;
+  --of-space-16: 64px;
+  --of-space-20: 80px;
+
+  --of-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --of-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --of-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --of-dur-fast: 120ms;
+  --of-dur-base: 200ms;
+  --of-dur-slow: 320ms;
+
+  color-scheme: light dark;
+}
+
+/* Explicit theme override (set on <html data-theme="...">) */
+html[data-theme='light'] { color-scheme: light; }
+html[data-theme='dark'] { color-scheme: dark; }

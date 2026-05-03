@@ -1,0 +1,20 @@
+#:schema node_modules/wrangler/config-schema.json
+# makerlog — Cloudflare Workers Static Assets deploy config.
+#
+# Deploys the Vite build output (./dist) as a static SPA on Workers.
+# No Worker entry is needed for the current build — the future
+# WorkerDataSource (src/data/source.ts) will plug in here when we add
+# cross-device sync via KV/D1.
+#
+# Forking? Replace `account_id` with your own (`wrangler whoami`).
+
+name = "makerlog"
+compatibility_date = "2025-04-01"
+account_id = "d6ff2f0914adb1d9faae77870fadb7cc"
+
+
+[assets]
+directory = "./dist"
+# SPA fallback: any unmatched path serves index.html so client-side
+# routing (if we add it) Just Works.
+not_found_handling = "single-page-application"

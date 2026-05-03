@@ -1,0 +1,270 @@
+{
+  "projects": [
+    {
+      "id": "local-ai-resources-czhengjuarez_ai_resources",
+      "name": "ai-resources",
+      "type": "personal",
+      "provider": "github",
+      "slug": "czhengjuarez/ai-resources",
+      "createdAt": "2026-04-27T09:12:43-07:00",
+      "description": "github.com/czhengjuarez/ai-resources"
+    },
+    {
+      "id": "local-Keel-czhengjuarez_Keel",
+      "name": "Keel",
+      "type": "personal",
+      "provider": "github",
+      "slug": "czhengjuarez/Keel",
+      "createdAt": "2026-04-19T11:16:02-07:00",
+      "description": "github.com/czhengjuarez/Keel"
+    },
+    {
+      "id": "local-LbD-site-czhengjuarez_lbd",
+      "name": "LbD-site",
+      "type": "personal",
+      "provider": "github",
+      "slug": "czhengjuarez/lbd",
+      "createdAt": "2026-04-19T00:00:15-07:00",
+      "description": "github.com/czhengjuarez/lbd"
+    },
+    {
+      "id": "local-OpsForward-czhengjuarez_OpsForward",
+      "name": "OpsForward",
+      "type": "personal",
+      "provider": "github",
+      "slug": "czhengjuarez/OpsForward",
+      "createdAt": "2026-04-18T20:17:25-07:00",
+      "description": "github.com/czhengjuarez/OpsForward"
+    }
+  ],
+  "commits": [
+    {
+      "id": "local-local-OpsForward-czhengjuarez_OpsForward-2f4f4f9ba6f3a1166e721d1e92c8e6b32b63fef4",
+      "projectId": "local-OpsForward-czhengjuarez_OpsForward",
+      "timestamp": "2025-12-23T07:21:10-08:00",
+      "message": "Initial commit of OpsForward",
+      "sha": "2f4f4f9"
+    },
+    {
+      "id": "local-local-OpsForward-czhengjuarez_OpsForward-12692c9c7e2c091640cccf95c445de4a4761ddf4",
+      "projectId": "local-OpsForward-czhengjuarez_OpsForward",
+      "timestamp": "2025-12-24T13:05:44-08:00",
+      "message": "move working environment to windsurf from antigravity due to space issue. continue develop in windsurf",
+      "sha": "12692c9"
+    },
+    {
+      "id": "local-local-OpsForward-czhengjuarez_OpsForward-e5297b70fa6ea82f2249cafbfa2f6abbd3f8fa78",
+      "projectId": "local-OpsForward-czhengjuarez_OpsForward",
+      "timestamp": "2025-12-24T17:27:35-08:00",
+      "message": "feat: Complete OpsForward platform with admin features and Tailwind v4",
+      "sha": "e5297b7"
+    },
+    {
+      "id": "local-local-OpsForward-czhengjuarez_OpsForward-21e01d0218bfb2b92dac0417a128ed2517d81999",
+      "projectId": "local-OpsForward-czhengjuarez_OpsForward",
+      "timestamp": "2025-12-24T18:13:45-08:00",
+      "message": "feat: Add rich text editor for site descriptions",
+      "sha": "21e01d0"
+    },
+    {
+      "id": "local-local-OpsForward-czhengjuarez_OpsForward-f7afd56319d0b823a72f5d76972143849a7f8cde",
+      "projectId": "local-OpsForward-czhengjuarez_OpsForward",
+      "timestamp": "2025-12-26T10:27:41-08:00",
+      "message": "feat: Add Live Site pill buttons and fix share functionality",
+      "sha": "f7afd56"
+    },
+    {
+      "id": "local-local-Keel-czhengjuarez_Keel-ad2dd68a61ef2953f99a0ec192dcddee65f65055",
+      "projectId": "local-Keel-czhengjuarez_Keel",
+      "timestamp": "2026-04-17T21:45:42-07:00",
+      "message": "Initial commit",
+      "sha": "ad2dd68"
+    },
+    {
+      "id": "local-local-Keel-czhengjuarez_Keel-92a6c85351a3d13ea9782894f3cbc032e4ce4c33",
+      "projectId": "local-Keel-czhengjuarez_Keel",
+      "timestamp": "2026-04-17T21:45:44-07:00",
+      "message": "Implement Ops Forward design system — core files and assets",
+      "sha": "92a6c85"
+    },
+    {
+      "id": "local-local-Keel-czhengjuarez_Keel-250297a7ff9e11e2870533fa795ec74e3401ceb4",
+      "projectId": "local-Keel-czhengjuarez_Keel",
+      "timestamp": "2026-04-17T22:06:36-07:00",
+      "message": "Add Astro docs site — project config and global styles",
+      "sha": "250297a"
+    },
+    {
+      "id": "local-local-Keel-czhengjuarez_Keel-754fc9f3d889583214c4533e65bb9bec986f1fe2",
+      "projectId": "local-Keel-czhengjuarez_Keel",
+      "timestamp": "2026-04-17T22:07:04-07:00",
+      "message": "Add Astro docs site — layouts and components",
+      "sha": "754fc9f"
+    },
+    {
+      "id": "local-local-Keel-czhengjuarez_Keel-2f6d291adf224438eacea94b5d8ada8860f3f460",
+      "projectId": "local-Keel-czhengjuarez_Keel",
+      "timestamp": "2026-04-18T12:27:36-07:00",
+      "message": "Complete rebase-readiness baseline and quality gates",
+      "sha": "2f6d291"
+    },
+    {
+      "id": "local-local-Keel-czhengjuarez_Keel-439fa328001ef1bbfc4cdf71a128814de2fe6cb6",
+      "projectId": "local-Keel-czhengjuarez_Keel",
+      "timestamp": "2026-04-18T12:55:29-07:00",
+      "message": "Harden keel package and improve docs navigation interactions",
+      "sha": "439fa32"
+    },
+    {
+      "id": "local-local-Keel-czhengjuarez_Keel-e220ee020f4285b136c94d77d6588d732c7c4544",
+      "projectId": "local-Keel-czhengjuarez_Keel",
+      "timestamp": "2026-04-18T13:02:20-07:00",
+      "message": "Fix sidebar collapse hidden-state styling",
+      "sha": "e220ee0"
+    },
+    {
+      "id": "local-local-Keel-czhengjuarez_Keel-d1feac77d36c75c38c0028d0710ac158a13bc447",
+      "projectId": "local-Keel-czhengjuarez_Keel",
+      "timestamp": "2026-04-18T13:11:48-07:00",
+      "message": "Harden CI checks and package prepack pipeline",
+      "sha": "d1feac7"
+    },
+    {
+      "id": "local-local-Keel-czhengjuarez_Keel-edbeff6e7255e944c2555807cd4a15e04abf41c1",
+      "projectId": "local-Keel-czhengjuarez_Keel",
+      "timestamp": "2026-04-18T17:33:22-07:00",
+      "message": "feat(lbd): add leadership by design site and module books",
+      "sha": "edbeff6"
+    },
+    {
+      "id": "local-local-LbD-site-czhengjuarez_lbd-6b13fd78407e1c08bbb460cddf6f342db225d9db",
+      "projectId": "local-LbD-site-czhengjuarez_lbd",
+      "timestamp": "2026-04-18T17:33:22-07:00",
+      "message": "feat(lbd): add leadership by design site and module books",
+      "sha": "6b13fd7"
+    },
+    {
+      "id": "local-local-Keel-czhengjuarez_Keel-3f2859510c6f81f766b88818a957fc129d55b222",
+      "projectId": "local-Keel-czhengjuarez_Keel",
+      "timestamp": "2026-04-18T17:41:22-07:00",
+      "message": "chore(repo): move lbd site to separate repository",
+      "sha": "3f28595"
+    },
+    {
+      "id": "local-local-Keel-czhengjuarez_Keel-56d482347ea3f93090704959a1cff812a4cac546",
+      "projectId": "local-Keel-czhengjuarez_Keel",
+      "timestamp": "2026-04-18T18:03:19Z",
+      "message": "Add Astro docs site with full pages and component demos",
+      "sha": "56d4823"
+    },
+    {
+      "id": "local-local-Keel-czhengjuarez_Keel-8575f1389b2a224473187224a74036221020517c",
+      "projectId": "local-Keel-czhengjuarez_Keel",
+      "timestamp": "2026-04-18T18:09:36Z",
+      "message": "Add docs/package-lock.json",
+      "sha": "8575f13"
+    },
+    {
+      "id": "local-local-OpsForward-czhengjuarez_OpsForward-df0d89a8881fe48476b853d0eae9770dede3d06c",
+      "projectId": "local-OpsForward-czhengjuarez_OpsForward",
+      "timestamp": "2026-04-18T18:49:38-07:00",
+      "message": "Finish token migration and ESLint cleanup",
+      "sha": "df0d89a"
+    },
+    {
+      "id": "local-local-OpsForward-czhengjuarez_OpsForward-22db2e26727122fadd1f2c8a2c3c5102f1a8afbf",
+      "projectId": "local-OpsForward-czhengjuarez_OpsForward",
+      "timestamp": "2026-04-18T18:53:29-07:00",
+      "message": "Add resilient avatar fallback to initials",
+      "sha": "22db2e2"
+    },
+    {
+      "id": "local-local-OpsForward-czhengjuarez_OpsForward-f508b137248aeefa518e131d5bda9a98f022dbd8",
+      "projectId": "local-OpsForward-czhengjuarez_OpsForward",
+      "timestamp": "2026-04-18T19:03:17-07:00",
+      "message": "Set frontend Wrangler account for coscient deploy",
+      "sha": "f508b13"
+    },
+    {
+      "id": "local-local-LbD-site-czhengjuarez_lbd-78bd479ba8ee98f124534db77715a89e17ddc05e",
+      "projectId": "local-LbD-site-czhengjuarez_lbd",
+      "timestamp": "2026-04-18T20:09:38-07:00",
+      "message": "Add submission feature, admin page, title slides, and course content updates",
+      "sha": "78bd479"
+    },
+    {
+      "id": "local-local-LbD-site-czhengjuarez_lbd-540d92e229729db5d16ebabf046714506bdb08db",
+      "projectId": "local-LbD-site-czhengjuarez_lbd",
+      "timestamp": "2026-04-18T20:12:40-07:00",
+      "message": "Add favicon and update index.html",
+      "sha": "540d92e"
+    },
+    {
+      "id": "local-local-OpsForward-czhengjuarez_OpsForward-ccbd718aeae32ebb6dcf6857cf82cd1181769057",
+      "projectId": "local-OpsForward-czhengjuarez_OpsForward",
+      "timestamp": "2026-04-18T20:17:25-07:00",
+      "message": "Fix site detail image: fall back to thumbnail_url when screenshot_url is null",
+      "sha": "ccbd718"
+    },
+    {
+      "id": "local-local-LbD-site-czhengjuarez_lbd-86e0735e55cd11a90c5b023178abbab8d646a607",
+      "projectId": "local-LbD-site-czhengjuarez_lbd",
+      "timestamp": "2026-04-19T00:00:15-07:00",
+      "message": "Add persistent icon-based theme toggle",
+      "sha": "86e0735"
+    },
+    {
+      "id": "local-local-Keel-czhengjuarez_Keel-615232ba34904c8e63bd2ee400c3e8675cb53be7",
+      "projectId": "local-Keel-czhengjuarez_Keel",
+      "timestamp": "2026-04-19T11:16:02-07:00",
+      "message": "Polish brand card, icon docs, and deployment readiness docs",
+      "sha": "615232b"
+    },
+    {
+      "id": "local-local-ai-resources-czhengjuarez_ai_resources-b217b783edcc2909494d944220fd9769fcabc596",
+      "projectId": "local-ai-resources-czhengjuarez_ai_resources",
+      "timestamp": "2026-04-24T20:51:20-07:00",
+      "message": "Add AI resource portal initial",
+      "sha": "b217b78"
+    },
+    {
+      "id": "local-local-ai-resources-czhengjuarez_ai_resources-8d8a7333c335750d496fa32a6d20ace4d3c6cf8c",
+      "projectId": "local-ai-resources-czhengjuarez_ai_resources",
+      "timestamp": "2026-04-24T22:35:29-07:00",
+      "message": "feat: migrate portal to React/Vite and Workers backend",
+      "sha": "8d8a733"
+    },
+    {
+      "id": "local-local-ai-resources-czhengjuarez_ai_resources-2fea1d14d52d4916999b69a7d9db4879c7440b40",
+      "projectId": "local-ai-resources-czhengjuarez_ai_resources",
+      "timestamp": "2026-04-24T22:45:51-07:00",
+      "message": "docs: add project readme",
+      "sha": "2fea1d1"
+    },
+    {
+      "id": "local-local-ai-resources-czhengjuarez_ai_resources-d1b047906f9f091eb5f5fa594a667311cae34e26",
+      "projectId": "local-ai-resources-czhengjuarez_ai_resources",
+      "timestamp": "2026-04-25T16:30:29-07:00",
+      "message": "feat: expand portal search, admin tooling, and content",
+      "sha": "d1b0479"
+    },
+    {
+      "id": "local-local-ai-resources-czhengjuarez_ai_resources-7682f5116eee1f710ee6060b98bce499b7de4003",
+      "projectId": "local-ai-resources-czhengjuarez_ai_resources",
+      "timestamp": "2026-04-26T08:53:34-07:00",
+      "message": "Improve planner intelligence and UX; add weekly scheduling and saved-plan titles",
+      "sha": "7682f51"
+    },
+    {
+      "id": "local-local-ai-resources-czhengjuarez_ai_resources-e5ed940fe0ead417d690d86596358a33ed880451",
+      "projectId": "local-ai-resources-czhengjuarez_ai_resources",
+      "timestamp": "2026-04-27T09:12:43-07:00",
+      "message": "content: add John Maeda Cozy AI Kitchen resources and comprehensive README update",
+      "sha": "e5ed940"
+    }
+  ],
+  "ideas": [],
+  "connections": [],
+  "version": 1,
+  "updatedAt": "2026-05-03T01:20:24.631Z"
+}
