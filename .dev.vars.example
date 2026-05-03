@@ -1,0 +1,5 @@
+# Wrangler local dev secrets — copy to .dev.vars (never commit .dev.vars)
+# Used by `wrangler dev` to simulate the Worker proxy locally.
+# Generate a PAT at https://github.com/settings/tokens/new
+# Required scopes: repo, read:user
+GITHUB_TOKEN=your_github_pat_here
