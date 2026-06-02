@@ -210,6 +210,61 @@ The `GITHUB_TOKEN` secret lives in Cloudflare Workers — it never touches the b
 
 If the secret isn't configured (e.g. local dev), the proxy returns `503` and the app falls back to demo data silently.
 
+### How data refresh works (and how to add a real cron)
+
+By default, makerlog refreshes data **client-side on every page load**:
+
+1. Load cached data from `localStorage` immediately (no flash)
+2. Make a single cheap call to `/user/repos?per_page=1&sort=pushed` to check if any repo was pushed since the last sync
+3. If a new push is detected **or** the cache is older than 24 h, fetch a fresh snapshot in the background
+
+This means data stays current as long as someone opens the site — good enough for a personal tool.
+
+**If you want a true background cron** (data refreshes even when the site isn't open, and is instantly fresh for every visitor), you need to add server-side storage:
+
+1. **Create a KV namespace** (or D1 database) in your Cloudflare account:
+   ```bash
+   npx wrangler kv:namespace create makerlog_cache
+   ```
+
+2. **Bind it in `wrangler.toml`:**
+   ```toml
+   [[kv_namespaces]]
+   binding = "CACHE"
+   id = "your-namespace-id"
+
+   [triggers]
+   crons = ["0 4 * * *"]   # 4 AM UTC daily
+   ```
+
+3. **Add a `scheduled` handler to `src/worker.ts`:**
+   ```typescript
+   export interface Env {
+     ASSETS: Fetcher;
+     CACHE: KVNamespace;
+     GITHUB_TOKEN?: string;
+   }
+
+   export default {
+     async fetch(request, env) { /* existing proxy code */ },
+
+     async scheduled(_event, env, ctx) {
+       if (!env.GITHUB_TOKEN) return;
+       const snap = await fetchGitHubSnapshot({
+         token: env.GITHUB_TOKEN,
+         windowDays: 365,
+       });
+       ctx.waitUntil(
+         env.CACHE.put('snapshot', JSON.stringify(snap), { expirationTtl: 90000 })
+       );
+     },
+   };
+   ```
+
+4. **Serve the cached snapshot** from the `/api/gh/*` handler instead of proxying live, or add a `/api/snapshot` endpoint the client reads on boot.
+
+The client-side `LocalDataSource` in `src/data/source.ts` would be replaced (or extended) with a `WorkerDataSource` — the interface is already stubbed out and ready to drop in.
+
 ---
 
 ## Roadmap
