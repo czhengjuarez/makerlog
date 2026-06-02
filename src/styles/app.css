@@ -127,6 +127,13 @@ a:hover { text-decoration: underline; }
   color: white;
   flex-shrink: 0;
 }
+.ml-banner--error {
+  background: linear-gradient(180deg, rgba(245, 158, 11, 0.12) 0%, rgba(180, 100, 0, 0.08) 100%);
+  border-color: color-mix(in srgb, #f59e0b 35%, transparent);
+}
+.ml-banner--error .ml-banner__icon {
+  background: #f59e0b;
+}
 .ml-banner__copy { flex: 1; min-width: 0; }
 .ml-banner code {
   background: var(--of-bg-elevated);
@@ -605,6 +612,10 @@ a:hover { text-decoration: underline; }
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
 }
+
+/* SVG repo link active/hover feedback */
+svg a[href]:hover text { opacity: 0.75; }
+svg a[href]:active text { opacity: 0.5; }
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {

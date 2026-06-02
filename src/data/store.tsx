@@ -14,6 +14,7 @@ import {
   fetchGitHubSnapshot,
   getLatestRepoPushedAt,
   snapshotToProjectsAndCommits,
+  GitHubError,
 } from '../lib/github';
 import type {
   Commit,
@@ -133,6 +134,7 @@ interface StoreCtx {
   importJSON: (raw: string) => boolean;
   ready: boolean;
   seeding: boolean;
+  syncError: string | null;
   viewingDemo: boolean;
   toggleDemo: () => void;
   syncNow: () => Promise<void>;
@@ -149,6 +151,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [, force] = useReducer((x) => x + 1, 0);
   const readyRef = useRef(false);
   const seedingRef = useRef(false);
+  const syncErrorRef = useRef<string | null>(null);
   const viewingDemoRef = useRef(false);
   const demoState = useMemo(() => generateMockState(), []);
 
@@ -190,10 +193,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
+      syncErrorRef.current = null;
       dispatch({ type: 'replace-state', state: refreshed });
       await dataSource.save(refreshed);
-    } catch {
-      // Proxy not available or GITHUB_TOKEN not set -- keep existing data.
+    } catch (err) {
+      const is503 = err instanceof GitHubError && err.status === 503;
+      syncErrorRef.current = is503
+        ? 'GITHUB_TOKEN not configured in the Worker. Run: wrangler secret put GITHUB_TOKEN'
+        : 'Sync failed — check your network or token.';
     }
   }, []);
 
@@ -361,6 +368,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       importJSON,
       ready: readyRef.current,
       seeding: seedingRef.current,
+      syncError: syncErrorRef.current,
       viewingDemo: viewingDemoRef.current,
       toggleDemo,
       syncNow,

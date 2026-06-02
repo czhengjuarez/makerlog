@@ -44,12 +44,14 @@
   border-color: var(--of-border-line);
 }
 .of-btn--secondary:hover { border-color: var(--of-border-strong); }
+.of-btn--secondary:active { background: var(--of-bg-recessed); border-color: var(--of-border-strong); }
 .of-btn--ghost {
   background: transparent;
   color: var(--of-fg-brand);
   border-color: transparent;
 }
 .of-btn--ghost:hover { background: var(--of-bg-brand-tint); }
+.of-btn--ghost:active { background: color-mix(in srgb, var(--of-bg-brand-tint) 180%, transparent); opacity: 0.8; }
 .of-btn--tint {
   background: var(--of-bg-brand-tint);
   color: var(--of-fg-brand);

@@ -1,5 +1,5 @@
 import { useMemo, useState, useRef } from 'react';
-import { Download, Upload, Github, Sparkles, SlidersHorizontal, Loader2, X } from 'lucide-react';
+import { Download, Upload, Github, Sparkles, SlidersHorizontal, Loader2, X, AlertTriangle } from 'lucide-react';
 import { StoreProvider, useStore } from './data/store';
 import { Header } from './components/Header';
 import { ViewSwitcher, type ViewMode } from './components/ViewSwitcher';
@@ -30,7 +30,7 @@ const VIEW_META: Record<ViewMode, { title: string; sub: string }> = {
 };
 
 function AppInner() {
-  const { exportJSON, importJSON, state, seeding, viewingDemo, toggleDemo, syncNow } = useStore();
+  const { exportJSON, importJSON, state, seeding, syncError, viewingDemo, toggleDemo, syncNow } = useStore();
   const [skippedOpen, setSkippedOpen] = useState(false);
   const skippedRepos = state.skippedRepos ?? [];
   const errorRepos = skippedRepos.filter((r) => r.reason === 'error');
@@ -95,6 +95,16 @@ function AppInner() {
       />
       <main className="ml-main">
         <div className="ml-stage">
+          {syncError && !seeding && (
+            <div className="ml-banner ml-banner--error" role="alert">
+              <span className="ml-banner__icon" aria-hidden>
+                <AlertTriangle size={16} strokeWidth={1.75} />
+              </span>
+              <div className="ml-banner__copy">
+                <strong>Sync error.</strong> {syncError}
+              </div>
+            </div>
+          )}
           {seeding ? (
             <div className="ml-banner" role="status">
               <span className="ml-banner__icon" aria-hidden>
