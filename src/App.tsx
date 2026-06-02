@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import { Download, Upload, Github, Sparkles, SlidersHorizontal, Loader2, X } from 'lucide-react';
 import { StoreProvider, useStore } from './data/store';
 import { Header } from './components/Header';
@@ -30,7 +30,11 @@ const VIEW_META: Record<ViewMode, { title: string; sub: string }> = {
 };
 
 function AppInner() {
-  const { exportJSON, importJSON, state, seeding, viewingDemo, toggleDemo } = useStore();
+  const { exportJSON, importJSON, state, seeding, viewingDemo, toggleDemo, syncNow } = useStore();
+  const [skippedOpen, setSkippedOpen] = useState(false);
+  const skippedRepos = state.skippedRepos ?? [];
+  const errorRepos = skippedRepos.filter((r) => r.reason === 'error');
+  const totalRepos = state.projects.length + skippedRepos.length;
   const [view, setView] = useState<ViewMode>('garden');
   const [filtered, setFiltered] = useState<ProjectType[]>([]);
   const [connectOpen, setConnectOpen] = useState(false);
@@ -86,6 +90,8 @@ function AppInner() {
         onToggleDemo={toggleDemo}
         viewingDemo={viewingDemo}
         onImport={handleImport}
+        onSync={syncNow}
+        syncing={seeding}
       />
       <main className="ml-main">
         <div className="ml-stage">
@@ -194,18 +200,48 @@ function AppInner() {
             {view === 'blueprint' && <Blueprint filteredTypes={filtered} />}
           </section>
 
-          <footer style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--of-fg-subtle)', fontSize: 12, padding: '0 4px 12px' }}>
-            <span>
-              {state.projects.length} project{state.projects.length === 1 ? '' : 's'}
-              <span className="ml-mono"> · </span>
-              {state.commits.length} commits
-              <span className="ml-mono"> · </span>
-              built with the Keel design system
-            </span>
-            <a href="https://github.com" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-              <Github size={12} strokeWidth={1.75} />
-              fork it
-            </a>
+          <footer style={{ color: 'var(--of-fg-subtle)', fontSize: 12, padding: '0 4px 12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span>
+                {state.projects.length} of {totalRepos} repo{totalRepos === 1 ? '' : 's'} displayed
+                <span className="ml-mono"> · </span>
+                {state.commits.length} commits
+                {skippedRepos.length > 0 && (
+                  <>
+                    <span className="ml-mono"> · </span>
+                    <button
+                      onClick={() => setSkippedOpen((o) => !o)}
+                      style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: errorRepos.length > 0 ? 'var(--of-fg-warning, #f59e0b)' : 'var(--of-fg-subtle)', fontSize: 12, textDecoration: 'underline' }}
+                    >
+                      {skippedRepos.length} skipped
+                    </button>
+                  </>
+                )}
+              </span>
+              <a href="https://github.com" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <Github size={12} strokeWidth={1.75} />
+                fork it
+              </a>
+            </div>
+            {skippedOpen && skippedRepos.length > 0 && (
+              <div style={{ marginTop: 8, padding: '8px 10px', background: 'var(--of-bg-elevated)', borderRadius: 6, border: '1px solid var(--of-border-line)' }}>
+                <div style={{ marginBottom: 6, fontWeight: 600, color: 'var(--of-fg-muted)' }}>Skipped repos</div>
+                {skippedRepos.map((r) => (
+                  <div key={r.slug} style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0', gap: 12 }}>
+                    <a href={`https://github.com/${r.slug}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--of-fg-default)', fontFamily: 'var(--of-font-mono)', textDecoration: 'none' }}>
+                      {r.slug}
+                    </a>
+                    <span style={{ color: r.reason === 'error' ? 'var(--of-fg-warning, #f59e0b)' : 'var(--of-fg-subtle)', whiteSpace: 'nowrap' }}>
+                      {r.reason === 'stale' ? 'no commits in window' :
+                       r.reason === 'empty' ? 'no commits found' :
+                       r.reason === 'error' ? 'access error (private?)' :
+                       r.reason === 'archived' ? 'archived' :
+                       r.reason}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </footer>
         </div>
 

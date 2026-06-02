@@ -1,4 +1,4 @@
-import { GitBranchPlus, RefreshCw, X, Sun, Moon, Upload } from 'lucide-react';
+import { GitBranchPlus, RefreshCw, X, Sun, Moon, Upload, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface HeaderProps {
@@ -6,11 +6,13 @@ interface HeaderProps {
   onToggleDemo: () => void;
   viewingDemo: boolean;
   onImport: () => void;
+  onSync: () => void;
+  syncing: boolean;
 }
 
 const THEME_KEY = 'makerlog:theme';
 
-export function Header({ onConnect, onToggleDemo, viewingDemo, onImport }: HeaderProps) {
+export function Header({ onConnect, onToggleDemo, viewingDemo, onImport, onSync, syncing }: HeaderProps) {
   const [theme, setTheme] = useState<'auto' | 'light' | 'dark'>(() => {
     if (typeof window === 'undefined') return 'auto';
     return (localStorage.getItem(THEME_KEY) as 'auto' | 'light' | 'dark') ?? 'auto';
@@ -57,6 +59,12 @@ export function Header({ onConnect, onToggleDemo, viewingDemo, onImport }: Heade
         </button>
         <button className="of-btn of-btn--ghost of-btn--md" onClick={cycleTheme} aria-label={`Theme: ${theme}`}>
           {themeIcon}
+        </button>
+        <button className="of-btn of-btn--ghost of-btn--md" onClick={onSync} disabled={syncing} title="Sync latest data from GitHub">
+          {syncing
+            ? <Loader2 size={16} strokeWidth={1.75} style={{ animation: 'ml-spin 1s linear infinite' }} />
+            : <RefreshCw size={16} strokeWidth={1.75} />}
+          <span>Sync</span>
         </button>
         <button className="of-btn of-btn--secondary of-btn--md" onClick={onConnect} title="Connect a GitLab repo via Personal Access Token">
           <GitBranchPlus size={16} strokeWidth={1.75} />

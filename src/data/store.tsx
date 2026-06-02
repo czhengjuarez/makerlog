@@ -24,6 +24,7 @@ import type {
   Preferences,
   Project,
   Provider,
+  SkippedRepo,
   UIFilters,
 } from './types';
 
@@ -134,6 +135,7 @@ interface StoreCtx {
   seeding: boolean;
   viewingDemo: boolean;
   toggleDemo: () => void;
+  syncNow: () => Promise<void>;
 }
 
 const Ctx = createContext<StoreCtx | null>(null);
@@ -172,11 +174,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         tokenHint: 'worker',
         connectedAt: new Date().toISOString(),
       };
+      const skippedRepos: SkippedRepo[] = snap.skipped.map((s) => ({
+        slug: s.repo.full_name,
+        name: s.repo.name,
+        reason: s.reason,
+      }));
       const refreshed: MakerLogState = {
         projects,
         commits,
         ideas: existingIdeas,
         connections: [connection],
+        skippedRepos,
         version: 1,
         updatedAt: new Date().toISOString(),
       };
@@ -291,6 +299,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     force();
   }, []);
 
+  const syncNow: StoreCtx['syncNow'] = useCallback(async () => {
+    if (seedingRef.current) return;
+    let done = false;
+    const cancelled = () => done;
+    seedingRef.current = true;
+    force();
+    await refreshFromGitHub(cancelled, state.ideas ?? []);
+    done = true;
+    seedingRef.current = false;
+    force();
+  }, [refreshFromGitHub, state.ideas]);
+
   const ingestSnapshot: StoreCtx['ingestSnapshot'] = useCallback((input) => {
     viewingDemoRef.current = false;
     dispatch({
@@ -341,8 +361,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       seeding: seedingRef.current,
       viewingDemo: viewingDemoRef.current,
       toggleDemo,
+      syncNow,
     }),
-    [effectiveState, setFilters, addIdea, setIdeaStatus, removeIdea, resetToMock, ingestSnapshot, setPreferences, exportJSON, importJSON, toggleDemo],
+    [effectiveState, setFilters, addIdea, setIdeaStatus, removeIdea, resetToMock, ingestSnapshot, setPreferences, exportJSON, importJSON, toggleDemo, syncNow],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

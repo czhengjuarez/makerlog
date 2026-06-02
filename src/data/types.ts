@@ -87,6 +87,12 @@ export interface Preferences {
   autoTopN?: number;
 }
 
+export interface SkippedRepo {
+  slug: string;
+  name: string;
+  reason: 'archived' | 'stale' | 'empty' | 'no-mine' | 'error';
+}
+
 /** The whole user state. Single document, easy to export. */
 export interface MakerLogState {
   projects: Project[];
@@ -95,6 +101,8 @@ export interface MakerLogState {
   connections: Connection[];
   /** Optional persisted prefs (visibility, auto-N). */
   preferences?: Preferences;
+  /** Repos excluded during last GitHub sync, for diagnostics. */
+  skippedRepos?: SkippedRepo[];
   /** Schema version for future migrations */
   version: number;
   /** Last update timestamp ISO */
