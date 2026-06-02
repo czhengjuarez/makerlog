@@ -4,6 +4,7 @@ import { useStore } from '../../data/store';
 import { accentForType, TYPE_LABEL } from '../../data/mock';
 import { bucketsByDay } from '../../lib/stats';
 import { getVisibleProjects } from '../../lib/visibility';
+import { repoUrl } from '../../lib/format';
 import { smoothPath } from './path';
 import type { Project, ProjectType } from '../../data/types';
 
@@ -198,9 +199,13 @@ export function River({ filteredTypes }: RiverProps) {
             return (
               <g key={project.id} transform={`translate(${col * 200}, ${row * 18})`}>
                 <rect width={10} height={10} y={-1} rx={2} fill={color} />
-                <text x={16} y={8} fontSize="11" fill="var(--of-fg-muted)" fontFamily="var(--of-font-sans)">
-                  {project.name}
-                </text>
+                <a href={repoUrl(project) ?? undefined} target="_blank" rel="noopener noreferrer">
+                  <text x={16} y={8} fontSize="11" fill="var(--of-fg-muted)" fontFamily="var(--of-font-sans)"
+                    style={{ cursor: repoUrl(project) ? 'pointer' : 'default', textDecoration: repoUrl(project) ? 'underline' : 'none' }}
+                  >
+                    {project.name}
+                  </text>
+                </a>
               </g>
             );
           })}
@@ -225,7 +230,11 @@ export function River({ filteredTypes }: RiverProps) {
                     display: 'inline-block',
                   }}
                 />
-                {r.project.name}
+                {repoUrl(r.project) ? (
+                  <a href={repoUrl(r.project)!} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>
+                    {r.project.name}
+                  </a>
+                ) : r.project.name}
               </span>
               <span>{r.count}</span>
             </div>

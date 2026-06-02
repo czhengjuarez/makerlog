@@ -5,6 +5,7 @@ import { accentForType, TYPE_LABEL } from '../../data/mock';
 import { commitsByProject } from '../../lib/stats';
 import { computeStreaks } from '../../lib/streak';
 import { getVisibleProjects } from '../../lib/visibility';
+import { repoUrl } from '../../lib/format';
 import type { Project, ProjectType } from '../../data/types';
 
 interface GardenProps {
@@ -193,17 +194,20 @@ export function Garden({ filteredTypes }: GardenProps) {
               {/* Tip bud */}
               <circle cx={tipX} cy={tipY} r={5} fill={accent} stroke="#fff" strokeOpacity={0.9} strokeWidth={1.2} />
               {/* Project label */}
-              <text
-                x={x}
-                y={GROUND_Y + 18}
-                fill="var(--of-fg-muted)"
-                fontSize="11"
-                fontWeight={600}
-                textAnchor="middle"
-                fontFamily="var(--of-font-mono)"
-              >
-                {project.name}
-              </text>
+              <a href={repoUrl(project) ?? undefined} target="_blank" rel="noopener noreferrer">
+                <text
+                  x={x}
+                  y={GROUND_Y + 18}
+                  fill="var(--of-fg-muted)"
+                  fontSize="11"
+                  fontWeight={600}
+                  textAnchor="middle"
+                  fontFamily="var(--of-font-mono)"
+                  style={{ cursor: repoUrl(project) ? 'pointer' : 'default', textDecoration: repoUrl(project) ? 'underline' : 'none' }}
+                >
+                  {project.name}
+                </text>
+              </a>
             </motion.g>
           );
         })}
@@ -214,7 +218,13 @@ export function Garden({ filteredTypes }: GardenProps) {
           className="ml-tooltip"
           style={{ left: Math.min(hover.x + 12, VB_W - 240), top: hover.y + 12 }}
         >
-          <div className="ml-tooltip__title">{hover.project.name}</div>
+          {repoUrl(hover.project) ? (
+            <a className="ml-tooltip__title" href={repoUrl(hover.project)!} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>
+              {hover.project.name}
+            </a>
+          ) : (
+            <div className="ml-tooltip__title">{hover.project.name}</div>
+          )}
           <div className="ml-tooltip__row">
             <span>Type</span>
             <span>{TYPE_LABEL[hover.project.type]}</span>

@@ -1,3 +1,11 @@
+import type { Project } from '../data/types';
+
+export function repoUrl(project: Project): string | null {
+  if (project.provider === 'github') return `https://github.com/${project.slug}`;
+  if (project.provider === 'gitlab') return `https://gitlab.com/${project.slug}`;
+  return null;
+}
+
 export function relativeDate(iso: string, now = new Date()): string {
   const then = new Date(iso).getTime();
   const diff = now.getTime() - then;

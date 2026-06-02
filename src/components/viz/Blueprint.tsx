@@ -5,6 +5,7 @@ import { accentForType, TYPE_LABEL } from '../../data/mock';
 import { commitsByProject } from '../../lib/stats';
 import { computeStreaks } from '../../lib/streak';
 import { getVisibleProjects } from '../../lib/visibility';
+import { repoUrl } from '../../lib/format';
 import type { Project, ProjectType } from '../../data/types';
 
 interface BlueprintProps {
@@ -203,17 +204,20 @@ export function Blueprint({ filteredTypes }: BlueprintProps) {
               </text>
 
               {/* project name below ground */}
-              <text
-                x={x + buildingW / 2}
-                y={GROUND_Y + 38}
-                textAnchor="middle"
-                fontSize="11"
-                fontFamily="var(--of-font-mono)"
-                fontWeight="600"
-                fill="var(--of-fg-default)"
-              >
-                {project.name}
-              </text>
+              <a href={repoUrl(project) ?? undefined} target="_blank" rel="noopener noreferrer">
+                <text
+                  x={x + buildingW / 2}
+                  y={GROUND_Y + 38}
+                  textAnchor="middle"
+                  fontSize="11"
+                  fontFamily="var(--of-font-mono)"
+                  fontWeight="600"
+                  fill="var(--of-fg-default)"
+                  style={{ cursor: repoUrl(project) ? 'pointer' : 'default', textDecoration: repoUrl(project) ? 'underline' : 'none' }}
+                >
+                  {project.name}
+                </text>
+              </a>
             </motion.g>
           );
         })}
@@ -235,7 +239,13 @@ export function Blueprint({ filteredTypes }: BlueprintProps) {
           className="ml-tooltip"
           style={{ left: Math.min(hover.x + 12, VB_W - 240), top: hover.y + 12 }}
         >
-          <div className="ml-tooltip__title">{hover.project.name}</div>
+          {repoUrl(hover.project) ? (
+            <a className="ml-tooltip__title" href={repoUrl(hover.project)!} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>
+              {hover.project.name}
+            </a>
+          ) : (
+            <div className="ml-tooltip__title">{hover.project.name}</div>
+          )}
           <div className="ml-tooltip__row">
             <span>Type</span>
             <span>{TYPE_LABEL[hover.project.type]}</span>
