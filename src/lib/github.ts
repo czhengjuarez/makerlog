@@ -158,6 +158,30 @@ export async function getCurrentUser(token: string, signal?: AbortSignal, apiBas
   return data;
 }
 
+/**
+ * Returns the pushed_at timestamp of the most recently pushed repo the user
+ * has access to. Single API call -- used to cheaply detect new pushes without
+ * a full snapshot fetch.
+ */
+export async function getLatestRepoPushedAt(
+  token: string,
+  signal?: AbortSignal,
+  apiBase = API_BASE,
+): Promise<string | null> {
+  try {
+    const { data } = await gh<GitHubRepo[]>(
+      token,
+      '/user/repos',
+      { affiliation: 'owner,collaborator,organization_member', sort: 'pushed', direction: 'desc', per_page: 1 },
+      signal,
+      apiBase,
+    );
+    return Array.isArray(data) && data.length > 0 ? data[0].pushed_at : null;
+  } catch {
+    return null;
+  }
+}
+
 interface GitHubEmailEntry {
   email: string;
   primary: boolean;

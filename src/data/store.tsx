@@ -12,6 +12,7 @@ import { dataSource } from './source';
 import { generateMockState } from './mock';
 import {
   fetchGitHubSnapshot,
+  getLatestRepoPushedAt,
   snapshotToProjectsAndCommits,
 } from '../lib/github';
 import type {
@@ -199,9 +200,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         readyRef.current = true;
         force();
 
-        // Background-refresh if cached data is stale (older than 24 h).
-        const age = Date.now() - new Date(loaded.updatedAt).getTime();
-        if (age > STALE_MS) {
+        // Check for new pushes via a single cheap API call, then fall back to
+        // the 24 h stale threshold if the check fails (no token, offline, etc.).
+        const latestPush = await getLatestRepoPushedAt('', undefined, '/api/gh');
+        const hasNewPush = latestPush !== null && latestPush > loaded.updatedAt;
+        const isStale = Date.now() - new Date(loaded.updatedAt).getTime() > STALE_MS;
+
+        if (hasNewPush || isStale) {
           seedingRef.current = true;
           force();
           await refreshFromGitHub(cancelled, loaded.ideas ?? []);
