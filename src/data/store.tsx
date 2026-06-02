@@ -149,21 +149,71 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const viewingDemoRef = useRef(false);
   const demoState = useMemo(() => generateMockState(), []);
 
+  const STALE_MS = 24 * 60 * 60 * 1000;
+
+  const refreshFromGitHub = useCallback(async (
+    cancelled: () => boolean,
+    existingIdeas: Idea[],
+  ) => {
+    try {
+      const snap = await fetchGitHubSnapshot({
+        token: '',
+        apiBase: '/api/gh',
+        windowDays: 365,
+        onlyMine: false,
+      });
+      if (cancelled()) return;
+      const { projects, commits } = snapshotToProjectsAndCommits(snap);
+      const connection: Connection = {
+        id: `conn-gh-${snap.user.id}-auto`,
+        provider: 'github',
+        username: snap.user.login,
+        tokenHint: 'worker',
+        connectedAt: new Date().toISOString(),
+      };
+      const refreshed: MakerLogState = {
+        projects,
+        commits,
+        ideas: existingIdeas,
+        connections: [connection],
+        version: 1,
+        updatedAt: new Date().toISOString(),
+      };
+      dispatch({ type: 'replace-state', state: refreshed });
+      await dataSource.save(refreshed);
+    } catch {
+      // Proxy not available or GITHUB_TOKEN not set -- keep existing data.
+    }
+  }, []);
+
   // Boot: load from datasource, or show mock then try to hydrate from Worker proxy.
   useEffect(() => {
-    let cancelled = false;
+    let isCancelled = false;
+    const cancelled = () => isCancelled;
     (async () => {
       const loaded = await dataSource.load();
-      if (cancelled) return;
+      if (isCancelled) return;
 
       if (loaded) {
         dispatch({ type: 'init', state: loaded });
         readyRef.current = true;
         force();
+
+        // Background-refresh if cached data is stale (older than 24 h).
+        const age = Date.now() - new Date(loaded.updatedAt).getTime();
+        if (age > STALE_MS) {
+          seedingRef.current = true;
+          force();
+          await refreshFromGitHub(cancelled, loaded.ideas ?? []);
+          if (!isCancelled) {
+            seedingRef.current = false;
+            force();
+          }
+        }
         return;
       }
 
-      // No saved data — show mock immediately so the UI isn’t blank.
+      // No saved data -- show mock immediately so the UI isn't blank.
       const mock = generateMockState();
       dispatch({ type: 'init', state: mock });
       readyRef.current = true;
@@ -172,46 +222,21 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
       // Try to hydrate from the Cloudflare Worker proxy (only works when deployed).
       // The Worker holds GITHUB_TOKEN as a secret; the browser sends no credentials.
-      try {
-        const snap = await fetchGitHubSnapshot({
-          token: '',
-          apiBase: '/api/gh',
-          windowDays: 365,
-          onlyMine: false,
-        });
-        if (cancelled) return;
-        const { projects, commits } = snapshotToProjectsAndCommits(snap);
-        const connection: Connection = {
-          id: `conn-gh-${snap.user.id}-auto`,
-          provider: 'github',
-          username: snap.user.login,
-          tokenHint: 'worker',
-          connectedAt: new Date().toISOString(),
-        };
-        const autoState: MakerLogState = {
-          projects,
-          commits,
-          ideas: [],
-          connections: [connection],
-          version: 1,
-          updatedAt: new Date().toISOString(),
-        };
-        dispatch({ type: 'replace-state', state: autoState });
-        await dataSource.save(autoState);
-      } catch {
-        // Proxy not available or GITHUB_TOKEN not set — keep mock data.
-        await dataSource.save(mock);
-      } finally {
-        if (!cancelled) {
-          seedingRef.current = false;
-          force();
+      await refreshFromGitHub(cancelled, []);
+      if (!isCancelled) {
+        // If refresh failed and we're still on mock, persist it so next boot is fast.
+        const current = await dataSource.load();
+        if (!current || current.updatedAt === new Date(0).toISOString()) {
+          await dataSource.save(mock);
         }
+        seedingRef.current = false;
+        force();
       }
     })();
     return () => {
-      cancelled = true;
+      isCancelled = true;
     };
-  }, []);
+  }, [refreshFromGitHub]);
 
   // Persist on every change after boot.
   useEffect(() => {
