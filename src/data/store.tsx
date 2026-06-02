@@ -157,6 +157,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const refreshFromGitHub = useCallback(async (
     cancelled: () => boolean,
     existingIdeas: Idea[],
+    existingPreferences?: MakerLogState['preferences'],
   ) => {
     try {
       const snap = await fetchGitHubSnapshot({
@@ -185,6 +186,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         ideas: existingIdeas,
         connections: [connection],
         skippedRepos,
+        preferences: existingPreferences,
         version: 1,
         updatedAt: new Date().toISOString(),
       };
@@ -217,7 +219,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         if (hasNewPush || isStale) {
           seedingRef.current = true;
           force();
-          await refreshFromGitHub(cancelled, loaded.ideas ?? []);
+          await refreshFromGitHub(cancelled, loaded.ideas ?? [], loaded.preferences);
           if (!isCancelled) {
             seedingRef.current = false;
             force();
@@ -305,11 +307,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const cancelled = () => done;
     seedingRef.current = true;
     force();
-    await refreshFromGitHub(cancelled, state.ideas ?? []);
+    await refreshFromGitHub(cancelled, state.ideas ?? [], state.preferences);
     done = true;
     seedingRef.current = false;
     force();
-  }, [refreshFromGitHub, state.ideas]);
+  }, [refreshFromGitHub, state.ideas, state.preferences]);
 
   const ingestSnapshot: StoreCtx['ingestSnapshot'] = useCallback((input) => {
     viewingDemoRef.current = false;
