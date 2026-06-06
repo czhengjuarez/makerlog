@@ -2,12 +2,23 @@ import type { Commit } from '../data/types';
 
 const DAY_MS = 86_400_000;
 
-function toDayKey(iso: string): string {
-  return iso.slice(0, 10);
+/**
+ * Local calendar day key (YYYY-MM-DD) in the viewer's timezone.
+ *
+ * A streak is a wall-clock concept, so we key by local days. Using the raw
+ * ISO slice would mis-bucket commits whose timestamp carries a non-UTC
+ * offset (e.g. a late-night commit that GitHub returns in UTC rolls into
+ * the next day), which previously broke streak chaining.
+ */
+function localDayKey(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
-function dayKey(d: Date): string {
-  return d.toISOString().slice(0, 10);
+function toDayKey(iso: string): string {
+  return localDayKey(new Date(iso));
 }
 
 /** Set of all day keys (YYYY-MM-DD) that contain at least one commit. */
@@ -27,7 +38,7 @@ export interface StreakInfo {
 /**
  * Compute current and longest commit streaks from a commit array.
  *
- * "Current" is anchored to today (UTC day) and walks back: it ends as soon
+ * "Current" is anchored to today (local day) and walks back: it ends as soon
  * as a day has zero commits. We allow yesterday's day to start the streak
  * if today is empty (so the streak doesn't break mid-morning).
  */
@@ -37,19 +48,19 @@ export function computeStreaks(commits: Commit[], now: Date = new Date()): Strea
 
   // Current streak from today (or yesterday if today empty).
   let current = 0;
-  let cursor = new Date(now);
-  cursor.setUTCHours(0, 0, 0, 0);
-  if (!days.has(dayKey(cursor))) {
-    cursor = new Date(cursor.getTime() - DAY_MS);
-    if (!days.has(dayKey(cursor))) {
+  const cursor = new Date(now);
+  cursor.setHours(0, 0, 0, 0);
+  if (!days.has(localDayKey(cursor))) {
+    cursor.setDate(cursor.getDate() - 1);
+    if (!days.has(localDayKey(cursor))) {
       return { current: 0, longest: computeLongest(days), currentStart: null };
     }
   }
-  let currentStart = dayKey(cursor);
-  while (days.has(dayKey(cursor))) {
+  let currentStart = localDayKey(cursor);
+  while (days.has(localDayKey(cursor))) {
     current += 1;
-    currentStart = dayKey(cursor);
-    cursor = new Date(cursor.getTime() - DAY_MS);
+    currentStart = localDayKey(cursor);
+    cursor.setDate(cursor.getDate() - 1);
   }
 
   return { current, longest: computeLongest(days), currentStart };
@@ -61,9 +72,12 @@ function computeLongest(days: Set<string>): number {
   let longest = 1;
   let run = 1;
   for (let i = 1; i < sorted.length; i++) {
-    const prev = new Date(sorted[i - 1] + 'T00:00:00Z').getTime();
-    const cur = new Date(sorted[i] + 'T00:00:00Z').getTime();
-    if (cur - prev === DAY_MS) {
+    // Parse as local midnight (no Z) and compare calendar-day distance.
+    // Math.round absorbs DST transitions where a day is 23 or 25 hours.
+    const prev = new Date(sorted[i - 1] + 'T00:00:00').getTime();
+    const cur = new Date(sorted[i] + 'T00:00:00').getTime();
+    const diffDays = Math.round((cur - prev) / DAY_MS);
+    if (diffDays === 1) {
       run += 1;
       if (run > longest) longest = run;
     } else {
