@@ -16,6 +16,8 @@ main = "src/worker.ts"
 [assets]
 directory = "./dist"
 binding = "ASSETS"
-# SPA fallback: any unmatched path serves index.html so client-side
-# routing (if we add it) Just Works.
 not_found_handling = "single-page-application"
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "743fb799a3524cc9b4e710942c78d535"
