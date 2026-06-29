@@ -265,6 +265,42 @@ This means data stays current as long as someone opens the site — good enough 
 
 The client-side `LocalDataSource` in `src/data/source.ts` would be replaced (or extended) with a `WorkerDataSource` — the interface is already stubbed out and ready to drop in.
 
+### `/api/stats` — public stats endpoint
+
+`GET https://makerlog.coscient.workers.dev/api/stats`
+
+Returns a JSON snapshot of the current GitHub activity summary — the same numbers shown in the top card of the app:
+
+```json
+{
+  "streak": 12,
+  "commits12Weeks": 87,
+  "activeProjects": 6,
+  "velocityDelta": 34,
+  "updatedAt": "2026-06-28T10:00:00.000Z"
+}
+```
+
+| Field | Description |
+|---|---|
+| `streak` | Current commit streak in calendar days |
+| `commits12Weeks` | Total commits across all repos in the last 84 days |
+| `activeProjects` | Number of distinct repos with at least one commit in the last 84 days |
+| `velocityDelta` | Percentage change in commits: last 42 days vs the prior 42 days |
+| `updatedAt` | ISO timestamp of when this snapshot was computed |
+
+**CORS:** `Access-Control-Allow-Origin: *` — any external site can fetch this directly from the browser.
+
+**Caching:** Results are stored in a Cloudflare KV namespace (`CACHE`, binding `gh:stats`) with a 1-hour TTL, so the GitHub API is only hit at most once per hour regardless of how many callers hit the endpoint.
+
+**Implementation:** The endpoint lives in `src/worker.ts`. It fetches the authenticated user, pulls up to 40 non-archived repos, collects commits from the last 84 days, then computes streak, velocity, and project counts server-side. The `GITHUB_TOKEN` secret never leaves the Worker.
+
+#### Who uses this
+
+**[changyingart.com](https://changyingart.com)** pulls from this endpoint to display a live maker status card — streak, weekly commits, and velocity delta — alongside the art portfolio. This is the primary external consumer of the API.
+
+If you fork makerlog for your own instance, your equivalent endpoint will be at `https://makerlog.<your-worker-name>.workers.dev/api/stats` and works the same way out of the box.
+
 ---
 
 ## Roadmap
