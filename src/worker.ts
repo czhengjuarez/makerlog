@@ -63,23 +63,40 @@ async function computeStats(token: string) {
     } catch { /* skip */ }
   }));
 
-  // 4. Streak — local calendar days
-  function localKey(iso: string) {
-    const d = new Date(iso);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  // 4. Streak — keyed by calendar day in Pacific time so it matches the
+  //    makerlog frontend, which uses the browser's local clock. Without this,
+  //    commits made in the evening PDT are attributed to the next UTC day and
+  //    the streak count diverges from what the makerlog site shows.
+  function dayKeyPT(date: Date): string {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Los_Angeles',
+      year: 'numeric', month: '2-digit', day: '2-digit',
+    }).formatToParts(date);
+    const m = Object.fromEntries(parts.map(p => [p.type, p.value]));
+    return `${m.year}-${m.month}-${m.day}`;
   }
-  const daySet = new Set(allCommits.map(c => localKey(c.timestamp)));
 
-  const now = new Date();
-  const cursor = new Date(now);
-  cursor.setHours(0, 0, 0, 0);
-  if (!daySet.has(localKey(cursor.toISOString()))) {
-    cursor.setTime(cursor.getTime() - DAY);
+  function prevDayKey(key: string): string {
+    const [y, mo, d] = key.split('-').map(Number);
+    const dt = new Date(y, mo - 1, d, 12); // local noon avoids DST edge cases
+    dt.setDate(dt.getDate() - 1);
+    return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
   }
+
+  const daySet = new Set(allCommits.map(c => dayKeyPT(new Date(c.timestamp))));
+  const todayKey = dayKeyPT(new Date());
+  const yestKey  = prevDayKey(todayKey);
+
+  const startKey = daySet.has(todayKey) ? todayKey
+                 : daySet.has(yestKey)  ? yestKey
+                 : null;
   let streak = 0;
-  while (daySet.has(localKey(cursor.toISOString()))) {
-    streak++;
-    cursor.setTime(cursor.getTime() - DAY);
+  if (startKey) {
+    let key = startKey;
+    while (daySet.has(key)) {
+      streak++;
+      key = prevDayKey(key);
+    }
   }
 
   // 5. Velocity: recent 42d vs prior 42d
@@ -123,8 +140,8 @@ export default {
         });
       }
 
-      // Try KV cache (1h TTL)
-      const cached = env.CACHE ? await env.CACHE.get('gh:stats') : null;
+      // Try KV cache (1h TTL) — key versioned so timezone fix takes effect immediately
+      const cached = env.CACHE ? await env.CACHE.get('gh:stats:v2') : null;
       if (cached) return new Response(cached, { headers: CORS_HEADERS });
 
       if (!env.GITHUB_TOKEN) {
@@ -137,7 +154,7 @@ export default {
       try {
         const stats = await computeStats(env.GITHUB_TOKEN);
         const json = JSON.stringify(stats);
-        if (env.CACHE) await env.CACHE.put('gh:stats', json, { expirationTtl: 3600 });
+        if (env.CACHE) await env.CACHE.put('gh:stats:v2', json, { expirationTtl: 3600 });
         return new Response(json, { headers: CORS_HEADERS });
       } catch (e) {
         return new Response(
