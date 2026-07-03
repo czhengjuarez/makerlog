@@ -35,17 +35,30 @@ async function computeStats(token: string) {
   const userRes = await ghFetch('/user', token);
   const user = await userRes.json() as { login: string };
 
-  // 2. All repos (owner + collaborator + org member)
-  const reposRes = await ghFetch('/user/repos', token,
-    'affiliation=owner,collaborator,organization_member&per_page=100&sort=pushed');
-  const repos = await reposRes.json() as Array<{
-    name: string; owner: { login: string }; archived: boolean; fork: boolean;
-  }>;
-
-  // 3. Commits last 84 days from non-archived, non-fork repos (cap at 40)
+  // 2. All repos with pagination — same approach as the makerlog frontend.
+  //    No hard cap: instead we skip repos whose pushed_at predates the window
+  //    (they can't have recent commits). This avoids the old slice(0,40) bug
+  //    that silently dropped repos beyond the 40th position.
   const since = new Date(Date.now() - 84 * DAY).toISOString();
-  const activeRepos = repos.filter(r => !r.archived).slice(0, 40);
+  type Repo = { name: string; owner: { login: string }; archived: boolean; pushed_at: string };
+  const allRepos: Repo[] = [];
+  for (let page = 1; page <= 5; page++) {
+    const res = await ghFetch('/user/repos', token,
+      `affiliation=owner,collaborator,organization_member&per_page=100&sort=pushed&page=${page}`);
+    if (!res.ok) break;
+    const batch = await res.json() as Repo[];
+    if (!Array.isArray(batch) || batch.length === 0) break;
+    allRepos.push(...batch);
+    if (batch.length < 100) break;
+  }
 
+  // Only probe repos that had a push within the window
+  const activeRepos = allRepos.filter(r => !r.archived && r.pushed_at >= since);
+
+  // 3. Commits — no `author` filter in the GitHub API call.
+  //    GitHub's author param only matches emails linked to the account, so it
+  //    silently drops commits made under a work email, breaking streak chains.
+  //    This mirrors the makerlog frontend's explicit choice to omit the filter.
   const allCommits: Array<{ timestamp: string; projectId: string }> = [];
 
   await Promise.all(activeRepos.map(async (repo) => {
@@ -53,7 +66,7 @@ async function computeStats(token: string) {
       const res = await ghFetch(
         `/repos/${repo.owner.login}/${repo.name}/commits`,
         token,
-        `author=${user.login}&since=${since}&per_page=100`
+        `since=${since}&per_page=100`
       );
       if (!res.ok) return;
       const commits = await res.json() as Array<{ commit: { author: { date: string } } }>;
@@ -141,7 +154,7 @@ export default {
       }
 
       // Try KV cache (1h TTL) — key versioned so timezone fix takes effect immediately
-      const cached = env.CACHE ? await env.CACHE.get('gh:stats:v2') : null;
+      const cached = env.CACHE ? await env.CACHE.get('gh:stats:v3') : null;
       if (cached) return new Response(cached, { headers: CORS_HEADERS });
 
       if (!env.GITHUB_TOKEN) {
@@ -154,7 +167,7 @@ export default {
       try {
         const stats = await computeStats(env.GITHUB_TOKEN);
         const json = JSON.stringify(stats);
-        if (env.CACHE) await env.CACHE.put('gh:stats:v2', json, { expirationTtl: 3600 });
+        if (env.CACHE) await env.CACHE.put('gh:stats:v3', json, { expirationTtl: 3600 });
         return new Response(json, { headers: CORS_HEADERS });
       } catch (e) {
         return new Response(
