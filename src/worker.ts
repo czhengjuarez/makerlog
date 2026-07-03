@@ -13,7 +13,7 @@ const GH_API = 'https://api.github.com';
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Content-Type': 'application/json',
-  'Cache-Control': 'public, max-age=3600',
+  'Cache-Control': 'public, max-age=60, stale-while-revalidate=300',
 };
 const DAY = 86_400_000;
 
