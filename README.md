@@ -83,7 +83,21 @@ npx wrangler secret put GITHUB_TOKEN
 # paste your PAT when prompted — it's stored encrypted in Cloudflare, never in your code
 ```
 
-**6. Deploy**
+**6. Set your timezone**
+
+The Worker computes streak day boundaries in a specific timezone. The live demo uses **Pacific time**; for your own instance, open `src/worker.ts` and change the `timeZone` value in `dayKeyPT` to your local timezone (any [IANA zone name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)):
+
+```typescript
+// src/worker.ts — find dayKeyPT() and change the timeZone string
+new Intl.DateTimeFormat('en-US', {
+  timeZone: 'America/New_York', // ← replace with your zone, e.g. Europe/London
+  ...
+})
+```
+
+If you skip this step the streak will still work, but day boundaries may not align with your local midnight.
+
+**7. Deploy**
 
 ```bash
 npm run deploy
@@ -295,7 +309,7 @@ Returns a JSON snapshot of the current GitHub activity summary — the same numb
 
 **Implementation:** The endpoint lives in `src/worker.ts`. It fetches the authenticated user, pulls up to 40 non-archived repos, collects commits from the last 84 days, then computes streak, velocity, and project counts server-side. The `GITHUB_TOKEN` secret never leaves the Worker.
 
-**Timezone:** Day boundaries are computed in **Pacific time (America/Los_Angeles)** using `Intl.DateTimeFormat`, matching the makerlog frontend which uses the browser's local clock. Without this, a commit made at 6 PM PDT would be attributed to the next UTC day, causing the streak on external consumers like changyingart.com to read lower than the makerlog site itself. The KV cache key is versioned (`v2`) so any future timezone or logic fix takes effect immediately on the next request without waiting for the old cache to expire.
+**Timezone:** The live site at makerlog.coscient.workers.dev computes day boundaries in **Pacific time (America/Los_Angeles)**. Streak counts shown here and on changyingart.com both use Pacific midnight as the day boundary — so if you're in a different timezone, a commit you make just after local midnight may not count toward your streak until it crosses Pacific midnight. If you fork the repo you can change the timezone to your own (see [Set your timezone](#6-set-your-timezone) in the fork guide). The KV cache key is versioned (`v2`) so any timezone or logic change takes effect immediately on the next request without waiting for the old cache to expire.
 
 #### Who uses this — changyingart.com
 
