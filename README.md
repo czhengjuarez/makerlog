@@ -297,11 +297,32 @@ Returns a JSON snapshot of the current GitHub activity summary — the same numb
 
 **Timezone:** Day boundaries are computed in **Pacific time (America/Los_Angeles)** using `Intl.DateTimeFormat`, matching the makerlog frontend which uses the browser's local clock. Without this, a commit made at 6 PM PDT would be attributed to the next UTC day, causing the streak on external consumers like changyingart.com to read lower than the makerlog site itself. The KV cache key is versioned (`v2`) so any future timezone or logic fix takes effect immediately on the next request without waiting for the old cache to expire.
 
-#### Who uses this
+#### Who uses this — changyingart.com
 
-**[changyingart.com](https://changyingart.com)** pulls from this endpoint to display a live maker status card — streak, weekly commits, and velocity delta — alongside the art portfolio. This is the primary external consumer of the API.
+**[changyingart.com](https://changyingart.com)** is an art portfolio site that displays a live maker status card alongside the creative work. The card shows the current build streak, total commits over the past 12 weeks, and velocity trend — pulled directly from this endpoint on every page load.
 
-If you fork makerlog for your own instance, your equivalent endpoint will be at `https://makerlog.<your-worker-name>.workers.dev/api/stats` and works the same way out of the box.
+**Why this matters:** The two sites represent two sides of the same maker — the art and the code. Surfacing the commit streak and velocity on the art portfolio makes the builder identity visible in context: a visitor to changyingart.com can see not just finished work, but the ongoing cadence of building. It closes the loop between shipping code and showing up creatively.
+
+**How the sync works:**
+
+```
+changyingart.com (browser)
+  │
+  └─ fetch("https://makerlog.coscient.workers.dev/api/stats")
+        │
+        ├─ KV hit (within 1h) → return cached JSON immediately
+        │
+        └─ KV miss → call GitHub API → compute stats → store in KV → return JSON
+```
+
+1. The changyingart.com page makes a plain `fetch()` call to `/api/stats` on load — no backend required on that side, no API keys needed, no GitHub credentials exposed.
+2. The makerlog Worker handles all the GitHub authentication and computation server-side.
+3. The KV cache means the response is near-instant for all callers after the first hit each hour — both sites effectively share the same cached result.
+4. Because both sites derive streak from the same Pacific-time logic, the number shown on changyingart.com always matches what makerlog shows.
+
+**No duplication of logic:** changyingart.com consumes data only — it never fetches GitHub directly, never computes streaks, and never needs its own token. All the calculation lives in one place (`src/worker.ts`), so any improvement to streak logic or velocity math automatically reflects on both sites after the next cache refresh.
+
+If you fork makerlog for your own instance, your equivalent endpoint will be at `https://makerlog.<your-worker-name>.workers.dev/api/stats` and any external site you own can consume it the same way.
 
 ---
 
