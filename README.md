@@ -291,9 +291,11 @@ Returns a JSON snapshot of the current GitHub activity summary — the same numb
 
 **CORS:** `Access-Control-Allow-Origin: *` — any external site can fetch this directly from the browser.
 
-**Caching:** Results are stored in a Cloudflare KV namespace (`CACHE`, binding `gh:stats`) with a 1-hour TTL, so the GitHub API is only hit at most once per hour regardless of how many callers hit the endpoint.
+**Caching:** Results are stored in a Cloudflare KV namespace (`CACHE`, key `gh:stats:v2`) with a 1-hour TTL, so the GitHub API is only hit at most once per hour regardless of how many callers hit the endpoint.
 
 **Implementation:** The endpoint lives in `src/worker.ts`. It fetches the authenticated user, pulls up to 40 non-archived repos, collects commits from the last 84 days, then computes streak, velocity, and project counts server-side. The `GITHUB_TOKEN` secret never leaves the Worker.
+
+**Timezone:** Day boundaries are computed in **Pacific time (America/Los_Angeles)** using `Intl.DateTimeFormat`, matching the makerlog frontend which uses the browser's local clock. Without this, a commit made at 6 PM PDT would be attributed to the next UTC day, causing the streak on external consumers like changyingart.com to read lower than the makerlog site itself. The KV cache key is versioned (`v2`) so any future timezone or logic fix takes effect immediately on the next request without waiting for the old cache to expire.
 
 #### Who uses this
 
